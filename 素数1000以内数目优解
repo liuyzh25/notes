@@ -1,0 +1,23 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+using namespace std;
+int prime[1000];
+int countPrime(int prime[]){
+	int vis[1000],count=0;
+	memset(vis,0,sizeof(vis));
+	for(int i=2;i<=1000;i++){
+		if(!vis[i]){
+			prime[count++] = i;
+			for(int j=i*i;j<=1000;j+=i){
+				vis[j] = 1;
+			}
+		}
+	}
+	return count;
+}
+int main(){
+	int count=countPrime(prime);
+	for(int i=0;i<count;i++) cout<<prime[i]<<" ";
+	
+} 
