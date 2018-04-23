@@ -1,0 +1,135 @@
+对一些资源以及状态的操作保存，最好是保存在生命周期的哪个函数中进行？
+
+
+onCreat（）:初始化操作，如：加载布局，绑定事件...
+
+onPause():系统准备启动或恢复另一个活动时调用，所以会保存一些关键数据
+
+onStart():活动由不可见变为可见是调用
+
+onResume（）：准备好和用户进行交互时调用
+如果你在onCreate()时候就保存状态，那么用户使用过程中的状态都没办法保存，只有在onPause()时候保存状态，才能保存用户最终的使用状态。
+
+sharepreferences的应用：
+定义：private SharePreference pref;
+private SharePerence.Editor editor;
+main(){
+	实例化对象：pref=PreferenceManager.getDefaultSharePreference(this);
+        获取存储的数据： 
+         boolean tag=pref.getBoolean("键名",false);
+         String b1=pref.getString("键名"，"");int a1=pref.getInt("",0);
+        写数据：
+         editor=pref.edit();
+         pref.putString("",)
+        editor.apply();//最好不用editor.commit();因为apply是将修改的数据放入内存，最后再写入硬盘；而commit()是每次putString都写入硬盘，如此效率既低又对硬盘伤害大。
+} 
+
+数据库存储的应用：
+创建数据库类：
+public class mySQL extends SQLOpenHelper{
+   public SQL();//构造函数
+   public static final String db="create table tab1(id integer primary key autoincrement,"+
+   "price text)"; 
+   重写oncreate()//只执行一次
+{
+ 	db.execSQL(tab1);
+}
+   重写onUpgrade()//更新
+}
+MainActivity
+//实例化对象
+private mySQL db=new mySQL(this,"tab1.db",null,1);
+//开始读写数据
+SQLDatabase db=mySQL.getWritableDatabase()
+遍历：
+Cursor cursor=db.query("tab1".null,null,null,null,null,null);
+while(cursor.moveToNext()){
+	String a=cursor.getString(cursor.getColumnIndex(""));
+}
+cursor.close;
+插入：ContentValues value=new ContentValues();
+value.put("**",**);
+db.insert("tab1",null,value);
+删除：db.delete("tab1","name = ?",new String[]{name});
+修改：ContentValues value=new ContentValues();
+value.put("**",**);
+db.update("tab1",value,"name=?",new String[]{name});
+
+设置屏幕横向：（手动设置）
+setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+默认竖向：
+setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+**********activity生命周期的概括：
+oncreate->onstart->onResume->onPause->onStop->onRestart->onDestroy
+其中，oncreate在activity新建时就启动，且只会启动一次；onstart后activity可见，但不能与用户交互；onResume后可与用户交互；onPause在当一个透明的新activity新启动时开始，这个时候，原来的activity是可见的，这个时候可以进行一些资源调配、重要数据的更改；onStop时activity不可见，完全进入新的一个activity，它与onStart相对；onStart是一个activity重新启动时开启，前提条件是该activity还在栈中；onDestroy则activity完全销毁。
+
+安卓垃圾回收机制：
+结构分为新生代和老生代，其中：
+新生代，回收对象多，存活对象少，使用复制算法（算法原理：将内存分为两份，一半用于存储存活对象，一半回收对象）
+老生代：存活对象多，回收对象少，使用标记整理算法（算法原理：将回收对象标记，然后将存活对象移向一端，之后再清除回收对象）
+
+********************哈希算法加密******************
+/*byte[] hash;
+                try {
+                    hash= MessageDigest.getInstance("MD5").digest(pass_str.getBytes("UTF-8"));
+                }catch(NoSuchAlgorithmException e){
+                    throw new RuntimeException("NosuchAlgorithmException",e);
+                }catch(UnsupportedEncodingException e){
+                    throw new RuntimeException("UnsupportedEncodingException",e);
+                }
+                StringBuilder hex=new StringBuilder(hash.length*2);
+                for(byte b:hash){
+                    if((b& 0xFF)<0x10){
+                        hex.append("0");
+                    }
+                    hex.append(Integer.toHexString(b&0xFF));
+                }
+                en_pass.setText(hex.toString());*/
+
+
+************************activity 的manifest定义
+1.IntentFilter里面默认出现android.intent.action.MAIN以及android.intent.actagory.LAUNCHER是成对出现的，因为前者代表哪个activity在启动时作为mainActivity出现，后者代表该app能呈现在程序列表中。
+2.1intent有显示和隐式两种，显示：Intent in=new Intent(ActivityA.this,ActivityB.class);startActivity(in);隐式：Intent in-new Intent();in.setAction("action.sj");startActvity(in);
+区别：显示是有针对的发送，接受对象是确定、唯一的；而隐式接受对象可能是多个，不确定的；其次，隐式的intentfilter匹配必须包含“android.intent.catagory.DEFAULT”,否则匹配失败
+2.2从相册中选择与拍照：相册选择：Intent in=new Intent(Intent.ACTION_PICK);in.setType("image/*");
+拍照：Intent in=new Intent(MediaStore.ACTION_IAMGE_CAPTURE);File file=new File(Environment.getExternalStorageDirectory()+File.separator+"food.jpg");
+intent2.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
+imagePath=file.getAbsolutePath();
+startActivityForResult(intent2,2);
+
+3.如果象要在浏览器打开一个音乐文件时，显示自己的app能打开，则在intentfilter中写入：
+<intent-filter>  
+     <action android:name="android.intent.action.VIEW" />  
+     <category android:name="android.intent.category.DEFAULT" />  
+     <data android:mimeType="audio/*" />  
+</intent-filter>  其中category是默认的
+
+如果我们想要匹配 http 以 “.pdf” 结尾的路径，使得别的程序想要打开网络 pdf 时，用户能够可以选择我们的程序进行下载查看。 
+我们可以将 scheme 设置为 “http”，pathPattern 设置为 “.*\\.pdf”，整个 intent-filter 设置为：
+<intent-filter>  
+     <action android:name="android.intent.action.VIEW" />  
+     <category android:name="android.intent.category.DEFAULT" />  
+     <data android:scheme="http" mimeType=".*\\.pdf" />  
+</intent-filter>  其中category是默认的
+
+data由两部分组成：mimeType和URI 
+MineType指的是媒体类型：例如imgage/jpeg，auto/mpeg4和viedo/*等，可以表示图片、文本、视频等不同的媒体格式 
+uri则由scheme、host、port、path | pathPattern | pathPrefix这4部分组成
+url: <scheme>://host:port/path |pathPettern|pathPrefix
+ Intent的uri可通过setData方法设置，mimetype可通过setType方法设置。
+
+
+***********************调用手机指纹解锁APP
+<manifest>里面配置<uses-permission name="USE_FINGERMAT"/>
+声明函数
+private FingerprintManagerCompat fingerManagerCompat;
+新建一个class mycallback继承FingerManagerCompat.AuthenticationCallback
+定义函数
+fingerprintManagerCompat=FingerprintManagerCompat.from(this);
+开始验证
+fingerprintMnagerCompat.authien(null,0,null,new mycallback(){
+	重写两个函数
+	failed
+        succedd
+},null);
