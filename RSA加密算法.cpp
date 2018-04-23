@@ -7,8 +7,13 @@ int prime[1000];
 long long PlainText[100];
 long long Cipher[100];
 int n;
-int e=0,d;//¹«Ô¿ºÍË½Ô¿ 
-//¼ÆËã1000ÒÔÄÚËØÊıµÄÊıÄ¿ 
+int e=0,d;//å…¬é’¥å’Œç§é’¥ 
+bool tag=false;
+int isMutual_Prime(int a,int b){
+	if(b==0) return a;
+	else return isMutual_Prime(b,a%b);
+}
+//è®¡ç®—1000ä»¥å†…ç´ æ•°çš„æ•°ç›® 
 int countPrime(int prime[]){
 	int vis[1000],count=0;
 	memset(vis,0,sizeof(vis));
@@ -22,7 +27,7 @@ int countPrime(int prime[]){
 	}
 	return count;
 }
-//·´¸´ÇóÃİµÄÄ£ 
+//åå¤æ±‚å¹‚çš„æ¨¡ 
 long long Exponent_Mode(long long a,int b,int n){
 	long long t=1;
 	while(b>0){
@@ -34,7 +39,7 @@ long long Exponent_Mode(long long a,int b,int n){
 	}
 	return t;
 }
-//Å·¼¸ÀïµÃÀ©Õ¹Ëã·¨
+//æ¬§å‡ é‡Œå¾—æ‰©å±•ç®—æ³•
 int Exgcd(int m,int n,int &x){
 	int x1,y1,x0,y0,y;
 	x0=1;y0=0;
@@ -55,47 +60,58 @@ int Exgcd(int m,int n,int &x){
 void RSA_Initialize(){
 	int count = countPrime(prime);
 	srand((unsigned)time(NULL));
-	//Ëæ»úÉú³ÉÁ½¸öËØÊı 
+	//éšæœºç”Ÿæˆä¸¤ä¸ªç´ æ•° 
 	int p = prime[rand()%count];
 	int q = prime[rand()%count];
 	for(int i=0;i<100;i++) PlainText[i] = rand()%1000;
-	cout<<"Éú³É100¸öËæ»úÊı£º"<<endl;
+	cout<<"ç”Ÿæˆ100ä¸ªéšæœºæ•°ï¼š"<<endl;
 	for(int i=0;i<100;i++) cout<<PlainText[i]<<" ";
 	cout<<endl; 
 	n = p * q;
 	int On = (p-1) * (q-1);
-	//Éú³Ée ºÍ d
-	for(int j=3;j<On;j+=1){
-		if(Exgcd(j,On,d)==1 && d>0){
+	//ç”Ÿæˆe å’Œ d
+	//éšæœºé€‰æ‹©ä¸€ä¸ªæ•´æ•°eï¼Œæ¡ä»¶æ˜¯1< e < Ï†(n)ï¼Œä¸”eä¸Ï†(n) äº’è´¨
+	int j=rand()%p+3;//ä¿è¯å…¬é’¥çš„éšæœºæ€§ 
+	for(;j<On;j+=1){
+		if(isMutual_Prime(j,On)==1 && Exgcd(j,On,d)==1 && d>0){
 			e = j;
 			break;
 		}
 	}
-	cout<<q<<" "<<p<<" "<<"n: "<<n<<" "<<"¹«Ô¿:"<<e<<"  Ë½Ô¿:"<<d<<endl; 
+	//å¦‚æœæ‰¾ä¸åˆ°ä¹˜æ³•é€†å…ƒï¼Œè‡ªå·±å®šä¹‰ä¸€ä¸ª 
+	if(j==On){
+		e=5327;
+		d=25775;
+		n=373319;
+	}
+	cout<<q<<" "<<p<<" "<<"n: "<<n<<" "<<"å…¬é’¥:"<<e<<"  ç§é’¥:"<<d<<endl; 
 }
 void RSA_encrypt(){
 	for(int i=0;i<100;i++){
 		Cipher[i] = Exponent_Mode(PlainText[i],e,n);
 	}
-	cout<<"RSA¼ÓÃÜºó£º\n";
+	cout<<"RSAåŠ å¯†åï¼š\n";
 	for(int i=0;i<100;i++){
 		cout<<Cipher[i]<<" ";
 	}
 	cout<<endl;
 }
 void RSA_decrypt(){
+	tag=true;
 	for(int i=0;i<100;i++){
 		Cipher[i] = Exponent_Mode(Cipher[i],d,n);
 	}
-	cout<<"RSA½âÃÜºó£º\n";
+	cout<<"RSAè§£å¯†åï¼š\n";
 	for(int i=0;i<100;i++){
 		cout<<Cipher[i]<<" ";
+		if(Cipher[i]!=PlainText[i]) tag=false;
 	}
 	cout<<endl;
+	if(tag) cout<<"è§£å¯†æˆåŠŸ\n";
+	else cout<<"è§£å¯†å¤±è´¥\n";
 }
 int main(){ 
 	RSA_Initialize();
-	PlainText[0]=665;
 	RSA_encrypt();
 	RSA_decrypt();
 } 
