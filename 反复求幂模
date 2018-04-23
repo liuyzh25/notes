@@ -1,0 +1,18 @@
+int Exponent(int a,int b,int n){
+	int t=1;
+	while(b>0){
+		if(b%2==1) {
+			t=a*t%n;
+			b--;
+		}
+		b/=2;
+		t=t*t%n;
+	}
+	return t;
+}
+int main(){
+	int a,b,n;
+	while(cin>>a>>b>>n){
+		cout<<Exponent(a,b,n)<<endl; 
+	}
+}
