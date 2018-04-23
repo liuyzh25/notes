@@ -6,7 +6,7 @@ int Exponent(int a,int b,int n){
 			b--;
 		}
 		b/=2;
-		t=t*t%n;
+		a=a*a%n;//这里是a，不是t
 	}
 	return t;
 }
