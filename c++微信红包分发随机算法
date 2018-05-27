@@ -1,0 +1,67 @@
+#include <iostream>
+#include <ctime>
+#include <iomanip>
+#include <cstdio>
+#include <cmath>
+#include<cstdlib>
+#include <cstring>
+using namespace std;
+double packages[50000]; 
+double Luckiest_money=0;
+void getPackage(int remainSize,double remainMoney){
+	srand((unsigned)time(NULL));
+	for(int i=0;i<remainSize;i++){
+		if(i==remainSize-1){ //最后一个红包 
+			packages[i]=round(remainMoney*100)/100;
+			if(Luckiest_money<packages[i]){////获取最佳手气的红包  
+				Luckiest_money = packages[i];
+			}
+			continue;
+		}
+		double min = 0.01;
+		double max = remainMoney/(remainSize-i)*2;//余额平均值*2
+		double randDouble = (rand()%101)*0.01;//0.0-1.0之间的随机数，这里可以精确到更多小数位，可能结果会更准确 
+		double money = randDouble*max;//余额平均值*2的随机值 
+		money = money<=min?0.01:money; 
+		money = floor(money*100)/100;//取小数点前两位 
+		packages[i] = money;
+		if(Luckiest_money<packages[i]){//获取最佳手气的红包 
+			Luckiest_money = packages[i];
+		}
+		remainMoney-=money;
+	}
+}
+int main(){
+	int count;
+	while(1){
+		double sum;
+		int num;
+		cout<<"请输入红包总额sum：";
+		cin>>sum;
+		if(sum>500){
+			cout<<"金额不能大于500，请重输！\n";
+			continue;
+		}else if((int)(sum*1000)%10!=0){
+			cout<<"金额不符合规律，请重输！\n";
+			continue;
+		}
+		cout<<"请输入红包数量num：";
+		cin>>num;
+		if(num*0.01>sum ||  num<=0){
+			cout<<"红包数量不符合规律，请重输！\n";
+			continue;
+		}
+		cout<<"红包金额分配如下：（领取时间自下而上）\n";
+		memset(packages,0,sizeof(packages));
+		Luckiest_money=0;
+		getPackage(num,sum);
+		for(int i=num-1;i>=0;i--){
+			cout<<fixed<<setprecision(2)<<packages[i];
+			if(packages[i]==Luckiest_money){
+				cout<<"（手气最佳）";
+			}
+			cout<<endl;
+		}
+		cout<<"\n\n";
+	}
+} 
