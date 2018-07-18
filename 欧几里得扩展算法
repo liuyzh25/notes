@@ -1,0 +1,46 @@
+#include <iostream>  
+#include <stdio.h>  
+#include <cmath>
+using namespace std;  
+//e*x+On*y=1 求 a mod b的乘法逆次元
+int exgcd(int a,int b,int &x,int &y)  
+{  
+    if(b==0)  
+    {            //1的情况  
+        x=1;  
+        y=0;  
+        return a;  
+    }  
+    int r=exgcd(b, a%b, x, y);  
+    int t=y;  
+    y=x-(a/b)*y;     //2的情况  
+    x=t;  
+    return r;  
+}  
+//本来直接调用exgcd即可求解乘法逆次元，但有时会出现负数，所以精益求精，使用cal()函数 
+int cal(int a,int n)  
+{  
+    int x,y;  
+    int gcd=exgcd(a, n, x, y);  
+    if(1%gcd!=0)  
+    {  
+        return -1;  
+    }  
+    x*=1/gcd;  
+    n=abs(n);  
+    int ans=x%n;  
+    if(ans<=0)  
+        ans+=n;  
+    return ans;  
+}  
+int main(){
+	int On,e,d;
+	while(1){
+		cout<<"输入e：";
+		cin>>e;
+		cout<<"输入On：";
+		cin>>On;
+		d=cal(e,On);
+		cout<<e<<"-1mod("<<On<<")的结果为："<<d<<endl;
+	}
+}
