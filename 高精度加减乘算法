@@ -1,0 +1,138 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cstring>
+using namespace std;
+//欧几里得求公约数 
+int exgcd(int a,int b){
+	if(a<b){
+		int temp = a;
+		a = b;
+		b = temp;
+	}
+	if(a%b==0) return b;
+	else return exgcd(b,a%b);
+} 
+//求x^y mod n 快速求幂 的模 
+int Exponent(int x,int y,int n){
+	int temp=1;
+	while(y){
+		if(y%2){
+			temp = temp*x%n;
+			y--;
+		}
+		x = x*x%n;
+		y/=2;
+	}
+	return temp;
+} 
+// 快速求幂
+long long powFast(long long a,int b){
+	long long ans = 1,base = a;
+	while(b){
+		if(b%2){
+			ans*=base;
+			b--;
+		}
+		base*=base;
+		b/=2;
+	}
+	return ans;
+} 
+//高精度加法 
+string highAddition(string a,string b){
+	int len1=a.length(),len2=b.length();
+	int len =len1>len2?(len1+1):(len2+1);
+	int *ans =new int[len],*a1=new int[len],*b1=new int[len];
+	memset(ans,0,sizeof(ans));
+	memset(a1,0,sizeof(a1));
+	memset(b1,0,sizeof(b1));
+	for(int i=0;i<len1;i++) a1[len1-1-i]=a[i]-'0';
+	for(int i=0;i<len2;i++) b1[len2-1-i]=b[i]-'0';
+	int i = 0,x=0;
+	while(i<=len1 ||i<=len2){
+		int temp = a1[i]+b1[i]+x;
+		x=temp/10;
+		ans[i] = temp%10;
+		i++;
+	}
+	i--;
+	while(ans[i]==0) i--;
+	string res = "";
+	for(int j=i;j>=0;j--) res.push_back(ans[j]+'0');
+	delete []ans;delete[]a1;delete []b1;
+	return res;
+}
+//高精度减法 
+string highPlus(string a,string b){
+	bool tag = false; 
+	int ka=0,kb=0;
+	while(ka<a.length() &&a[ka]=='0') ka++;
+	while(kb<b.length() &&b[kb]=='0') kb++;
+	if(a.length()-ka==b.length()-kb){
+		while(ka<a.length() &&kb<b.length() &&a[ka]-'0'==b[kb]-'0') ka++,kb++;
+	}
+	if(a.length()-ka<b.length()-kb ||(a.length()-ka==b.length()-kb&&a[ka]-'0'<b[kb]-'0')){
+		string temp=a;
+		a=b;
+		b=temp;
+		tag = true;//说明a<b a-b为负数 
+	}
+	int len1 = a.length(),len2 = b.length();
+	int len =len1>len2?(len1+1):(len2+1);
+	vector<int> ans(len,0);
+	vector<int> a1(len,0);
+	vector<int> b1(len,0);
+	for(int i=0;i<len1;i++) a1[len1-i-1]=a[i]-'0';
+	for(int i=0;i<len2;i++) b1[len2-i-1]=b[i]-'0';
+	int count = 0,x=0;
+	while(count<len1 ||count<len2){
+		if(a1[count]<b1[count]){
+			x=1;//借一位 
+			a1[count+1]-=1;
+		}
+		ans[count] = a1[count]+x*10-b1[count];
+		count++;
+		x=0;
+	}
+	string res="";
+	while(ans[count]==0) count--;
+	if(tag) res+="-";
+	for(int i=count;i>=0;i--) res.push_back(ans[i]+'0');
+	return res;
+}
+//高精度乘法 a*b
+string BigMul(string a,string b){
+	int len1=a.length(),len2=b.length(),len=len1+len2+1;
+	vector<int> ans(len,0);
+	vector<int> a1(len1,0);
+	vector<int> b1(len2,0);
+	for(int i=0;i<len1;i++) a1[len1-i-1]=a[i]-'0';//反转
+	for(int i=0;i<len2;i++) b1[len2-i-1]=b[i]-'0';
+	int start;
+	for(int i=0;i<len1;i++){
+		start = i;
+		for(int j=0;j<len2;j++){
+			ans[start]+=a1[i]*b1[j];
+			start++;
+		}
+	} 
+	for(int i=0;i<len-1;i++){
+		ans[i+1]+=(ans[i]/10);
+		ans[i]%=10;	
+	}
+	int count = len-1;
+	while(ans[count]==0) count--;
+	string res="";
+	for(int i=count;i>=0;i--) res.push_back(ans[i]+'0');
+	return res;
+} 
+int main()
+{
+	string a,b;
+	while(cin>>a>>b){
+		cout<<highAddition(a,b)<<endl;
+		cout<<highPlus(a,b)<<endl;
+		cout<<BigMul(a,b)<<endl; 
+	}
+}
